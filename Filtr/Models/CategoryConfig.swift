@@ -2,12 +2,16 @@ import Foundation
 
 struct CategoryConfig: Identifiable, Codable, Equatable {
     var id: CategoryID
+    /// User-visible name (editable).
+    var name: String
     var enabled: Bool
     /// Base daily limit in minutes (before today’s extends).
     var dailyLimitMinutes: Int
     var mappings: [AppMapping]
 
-    var displayName: String { id.displayName }
+    var displayName: String { name }
+
+    var isBuiltIn: Bool { id.isBuiltIn }
 }
 
 enum FiltrDefaults {
@@ -21,29 +25,27 @@ enum FiltrDefaults {
         [
             CategoryConfig(
                 id: .youtube,
+                name: "YouTube",
                 enabled: true,
                 dailyLimitMinutes: youtubeLimitMinutes,
                 mappings: [
                     AppMapping(
                         bundleIdentifier: nil,
-                        appName: "YouTube",
+                        appName: "YouTube (browser)",
                         hostPatterns: ["youtube.com", "youtu.be", "m.youtube.com", "www.youtube.com"]
-                    ),
-                    AppMapping(
-                        bundleIdentifier: "com.apple.Safari.WebApp",
-                        appName: "YouTube",
-                        hostPatterns: ["youtube.com", "youtu.be"]
                     ),
                 ]
             ),
             CategoryConfig(
                 id: .gaming,
+                name: "Gaming",
                 enabled: true,
                 dailyLimitMinutes: gamingLimitMinutes,
                 mappings: starterGamingMappings()
             ),
             CategoryConfig(
                 id: .other,
+                name: "Other",
                 enabled: false,
                 dailyLimitMinutes: otherLimitMinutes,
                 mappings: []
@@ -54,7 +56,6 @@ enum FiltrDefaults {
     static func starterGamingMappings() -> [AppMapping] {
         [
             AppMapping(bundleIdentifier: "com.valvesoftware.steam", appName: "Steam"),
-            AppMapping(bundleIdentifier: "com.valvesoftware.steam.helper", appName: "Steam Helper"),
             AppMapping(bundleIdentifier: "com.epicgames.EpicGamesLauncher", appName: "Epic Games Launcher"),
             AppMapping(bundleIdentifier: "com.blizzard.battle.net", appName: "Battle.net"),
             AppMapping(bundleIdentifier: "net.battle.net.app", appName: "Battle.net"),
@@ -65,7 +66,7 @@ enum FiltrDefaults {
             AppMapping(bundleIdentifier: "com.mojang.minecraft", appName: "Minecraft"),
             AppMapping(
                 bundleIdentifier: nil,
-                appName: "Gaming sites",
+                appName: "Twitch / game stores",
                 hostPatterns: ["twitch.tv", "store.steampowered.com", "epicgames.com"]
             ),
         ]

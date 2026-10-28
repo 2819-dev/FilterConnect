@@ -4,15 +4,19 @@ import SwiftUI
 enum SetupStep: Int, CaseIterable {
     case welcome
     case limits
+    case apps
     case permissions
     case ready
 }
 
 struct SetupFlowView: View {
     @ObservedObject var store: FiltrStore
+    @ObservedObject var tracker: UsageTracker
+    @StateObject private var catalog = InstalledAppsCatalog()
     var onFinished: () -> Void
 
     @State private var step: SetupStep = .welcome
+    @State private var pickerCategory: CategoryID?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,7 +27,7 @@ struct SetupFlowView: View {
             Divider().opacity(0.25)
             footerBar
         }
-        .frame(width: 520, height: 420)
+        .frame(width: 560, height: 480)
         .background(
             LinearGradient(
                 colors: [
@@ -34,6 +38,15 @@ struct SetupFlowView: View {
                 endPoint: .bottomTrailing
             )
         )
+        .sheet(item: $pickerCategory) { id in
+            AppPickerSheet(
+                store: store,
+                tracker: tracker,
+                catalog: catalog,
+                categoryID: id
+            )
+        }
+        .onAppear { catalog.loadIfNeeded() }
     }
 
     private var headerBar: some View {
@@ -75,14 +88,11 @@ struct SetupFlowView: View {
     @ViewBuilder
     private var content: some View {
         switch step {
-        case .welcome:
-            welcomeStep
-        case .limits:
-            limitsStep
-        case .permissions:
-            permissionsStep
-        case .ready:
-            readyStep
+        case .welcome: welcomeStep
+        case .limits: limitsStep
+        case .apps: appsStep
+        case .permissions: permissionsStep
+        case .ready: readyStep
         }
     }
 
@@ -93,14 +103,14 @@ struct SetupFlowView: View {
                 .foregroundStyle(FiltrTheme.ink)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("Filtr lives in your menu bar and gently nudges you when daily time on YouTube, gaming, or other distractions runs out — never a hard lockout.")
+            Text("Filtr lives in your menu bar. You choose the categories, pick the apps and sites that count, and get a soft nudge when time runs out — never a hard lockout.")
                 .font(.system(size: 14))
                 .foregroundStyle(FiltrTheme.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 8) {
-                setupBullet("Soft extends: +1 min, +15 min, or for today")
-                setupBullet("Tracks apps and browser sites (best-effort)")
+                setupBullet("Rename categories or add your own")
+                setupBullet("Select installed apps and website hosts")
                 setupBullet("Everything stays on this Mac")
             }
             .padding(.top, 6)
@@ -109,19 +119,43 @@ struct SetupFlowView: View {
     }
 
     private var limitsStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Set today’s starting limits")
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .foregroundStyle(FiltrTheme.ink)
-            Text("You can change these anytime in Settings. Other is off until you assign apps or sites to it.")
-                .font(.system(size: 13))
-                .foregroundStyle(FiltrTheme.muted)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Daily limits")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(FiltrTheme.ink)
+                Text("Turn categories on and set minutes. You can rename them anytime in Settings.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(FiltrTheme.muted)
 
-            ForEach(store.categories) { config in
-                SetupLimitRow(store: store, config: config)
+                ForEach(store.categories) { config in
+                    SetupLimitRow(store: store, config: config)
+                }
             }
+            .padding(28)
         }
-        .padding(28)
+    }
+
+    private var appsStep: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Choose what counts")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundStyle(FiltrTheme.ink)
+                Text("Pick the apps and sites for each category. Only selected items are tracked.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(FiltrTheme.muted)
+
+                ForEach(store.categories) { config in
+                    SetupAppsRow(
+                        store: store,
+                        config: config,
+                        onChoose: { pickerCategory = config.id }
+                    )
+                }
+            }
+            .padding(28)
+        }
     }
 
     private var permissionsStep: some View {
@@ -129,7 +163,7 @@ struct SetupFlowView: View {
             Text("Browser tracking (optional)")
                 .font(.system(size: 20, weight: .semibold, design: .rounded))
                 .foregroundStyle(FiltrTheme.ink)
-            Text("App limits work immediately. To count YouTube and other sites in Safari or Chrome, Filtr needs permission to read the active tab URL.")
+            Text("App limits work immediately. To count sites like YouTube in Safari or Chrome, grant Accessibility (and Automation if prompted).")
                 .font(.system(size: 13))
                 .foregroundStyle(FiltrTheme.muted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -162,15 +196,15 @@ struct SetupFlowView: View {
             Text("You’re set")
                 .font(.system(size: 26, weight: .semibold, design: .rounded))
                 .foregroundStyle(FiltrTheme.ink)
-            Text("Filtr is in the menu bar. Click the hourglass anytime to see today’s usage. Updates install in the background when a new version is published.")
+            Text("Filtr is in the menu bar. Open Settings anytime to rename categories, change limits, or pick different apps.")
                 .font(.system(size: 14))
                 .foregroundStyle(FiltrTheme.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 8) {
-                setupBullet("Keep Filtr running while you work")
-                setupBullet("Soft nudge when a limit is hit — extend or dismiss")
-                setupBullet("Check for Updates anytime in Settings")
+                ForEach(store.categories.filter(\.enabled)) { config in
+                    setupBullet("\(config.displayName): \(config.dailyLimitMinutes) min · \(config.mappings.count) items")
+                }
             }
             .padding(.top, 4)
         }
@@ -209,18 +243,14 @@ struct SetupFlowView: View {
         switch step {
         case .welcome: return "Setup · Welcome"
         case .limits: return "Setup · Limits"
+        case .apps: return "Setup · Apps & sites"
         case .permissions: return "Setup · Permissions"
         case .ready: return "Setup · Ready"
         }
     }
 
     private var primaryTitle: String {
-        switch step {
-        case .welcome: return "Continue"
-        case .limits: return "Continue"
-        case .permissions: return "Continue"
-        case .ready: return "Start using Filtr"
-        }
+        step == .ready ? "Start using Filtr" : "Continue"
     }
 
     private func setupBullet(_ text: String) -> some View {
@@ -256,42 +286,92 @@ struct SetupFlowView: View {
 struct SetupLimitRow: View {
     @ObservedObject var store: FiltrStore
     let config: CategoryConfig
-    @State private var minutesText = ""
+    @State private var nameText = ""
 
     var body: some View {
-        HStack {
-            Toggle(isOn: Binding(
-                get: { store.category(for: config.id)?.enabled ?? false },
-                set: { store.setEnabled($0, for: config.id) }
-            )) {
-                Text(config.displayName)
-                    .font(.system(size: 14, weight: .medium))
+        let live = store.category(for: config.id) ?? config
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Toggle(isOn: Binding(
+                    get: { store.category(for: config.id)?.enabled ?? false },
+                    set: { store.setEnabled($0, for: config.id) }
+                )) {
+                    EmptyView()
+                }
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .tint(FiltrTheme.accent)
+
+                TextField("Category name", text: $nameText)
+                    .textFieldStyle(.roundedBorder)
+                    .onAppear { nameText = live.name }
+                    .onSubmit { store.renameCategory(config.id, to: nameText) }
+
+                Spacer()
+
+                Stepper(value: Binding(
+                    get: { store.category(for: config.id)?.dailyLimitMinutes ?? config.dailyLimitMinutes },
+                    set: { store.setLimit(minutes: $0, for: config.id) }
+                ), in: 5...24 * 60, step: 5) {
+                    Text("\(live.dailyLimitMinutes) min")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(FiltrTheme.muted)
+                        .frame(minWidth: 64, alignment: .trailing)
+                }
             }
-            .toggleStyle(.switch)
-            .tint(FiltrTheme.accent)
-
-            Spacer()
-
-            TextField("min", text: $minutesText)
-                .frame(width: 52)
-                .textFieldStyle(.roundedBorder)
-                .onAppear { minutesText = "\(config.dailyLimitMinutes)" }
-                .onSubmit { commit() }
-            Text("min")
-                .font(.system(size: 12))
-                .foregroundStyle(FiltrTheme.muted)
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color.white.opacity(0.65))
         )
-        .onDisappear { commit() }
+        .onDisappear { store.renameCategory(config.id, to: nameText) }
     }
+}
 
-    private func commit() {
-        if let value = Int(minutesText.trimmingCharacters(in: .whitespaces)) {
-            store.setLimit(minutes: value, for: config.id)
+struct SetupAppsRow: View {
+    @ObservedObject var store: FiltrStore
+    let config: CategoryConfig
+    var onChoose: () -> Void
+
+    var body: some View {
+        let live = store.category(for: config.id) ?? config
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(live.displayName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(FiltrTheme.ink)
+                Spacer()
+                Text("\(live.mappings.count) selected")
+                    .font(.system(size: 12))
+                    .foregroundStyle(FiltrTheme.muted)
+            }
+
+            if live.mappings.isEmpty {
+                Text(live.id == .other
+                       ? "Off until you assign apps or sites."
+                       : "No apps yet — choose what should count.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(FiltrTheme.muted)
+            } else {
+                Text(live.mappings.prefix(4).map(\.appName).joined(separator: ", ")
+                      + (live.mappings.count > 4 ? "…" : ""))
+                    .font(.system(size: 12))
+                    .foregroundStyle(FiltrTheme.muted)
+                    .lineLimit(2)
+            }
+
+            Button(action: onChoose) {
+                Label("Choose apps & sites…", systemImage: "plus.app")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(FiltrTheme.accent)
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(0.65))
+        )
     }
 }

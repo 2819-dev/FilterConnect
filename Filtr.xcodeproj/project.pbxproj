@@ -26,6 +26,9 @@
 		A10000000000000000000010 /* SetupFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* SetupFlowView.swift */; };
 		A10000000000000000000011 /* SetupWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* SetupWindowController.swift */; };
 		A10000000000000000000012 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* UpdateController.swift */; };
+
+		A10000000000000000000014 /* InstalledAppsCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* InstalledAppsCatalog.swift */; };
+		A10000000000000000000015 /* AppPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* AppPickerSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +54,8 @@
 		A20000000000000000000013 /* SetupFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupFlowView.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* SetupWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupWindowController.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* InstalledAppsCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAppsCatalog.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* AppPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPickerSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +119,7 @@
 				A2000000000000000000000A /* SoftLimitPresenter.swift */,
 				A20000000000000000000014 /* SetupWindowController.swift */,
 				A20000000000000000000015 /* UpdateController.swift */,
+				A20000000000000000000016 /* InstalledAppsCatalog.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -126,6 +132,7 @@
 				A2000000000000000000000D /* SettingsView.swift */,
 				A2000000000000000000000E /* SoftLimitView.swift */,
 				A20000000000000000000013 /* SetupFlowView.swift */,
+				A20000000000000000000017 /* AppPickerSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -225,6 +232,8 @@
 				A10000000000000000000010 /* SetupFlowView.swift in Sources */,
 				A10000000000000000000011 /* SetupWindowController.swift in Sources */,
 				A10000000000000000000012 /* UpdateController.swift in Sources */,
+				A10000000000000000000014 /* InstalledAppsCatalog.swift in Sources */,
+				A10000000000000000000015 /* AppPickerSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,7 +281,7 @@
 				CODE_SIGN_ENTITLEMENTS = Filtr/Filtr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 30;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -282,7 +291,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.filtr.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -297,7 +306,7 @@
 				CODE_SIGN_ENTITLEMENTS = Filtr/Filtr.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 30;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -307,7 +316,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.filtr.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

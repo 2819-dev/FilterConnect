@@ -36,7 +36,7 @@ struct FiltrApp: App {
                 tracker: tracker,
                 updates: updates,
                 onReplaySetup: {
-                    setupController.present(store: store)
+                    setupController.present(store: store, tracker: tracker)
                 }
             )
         }
@@ -45,7 +45,7 @@ struct FiltrApp: App {
     private func presentSetupIfNeeded() {
         guard !store.hasCompletedSetup else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            setupController.present(store: store)
+            setupController.present(store: store, tracker: tracker)
         }
     }
 }
@@ -54,7 +54,7 @@ struct MenuBarLabel: View {
     @ObservedObject var store: FiltrStore
 
     var body: some View {
-        let over = CategoryID.allCases.contains { store.isOverLimit(for: $0) }
+        let over = store.categories.contains { store.isOverLimit(for: $0.id) }
         Image("MenuBarIcon")
             .renderingMode(.template)
             .opacity(over ? 1.0 : 0.9)

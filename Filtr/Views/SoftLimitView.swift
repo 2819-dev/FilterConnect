@@ -18,7 +18,7 @@ struct SoftLimitView: View {
                     .foregroundStyle(FiltrTheme.ink)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text(category.displayName)
+                Text(store.displayName(for: category))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(FiltrTheme.muted)
             }

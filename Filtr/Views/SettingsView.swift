@@ -5,8 +5,14 @@ struct SettingsView: View {
     @ObservedObject var store: FiltrStore
     @ObservedObject var tracker: UsageTracker
     @ObservedObject var updates: UpdateController
+    @StateObject private var catalog = InstalledAppsCatalog()
     var onReplaySetup: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+
+    @State private var pickerCategory: CategoryID?
+    @State private var newCategoryName = ""
+    @State private var renamingID: CategoryID?
+    @State private var renameText = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -29,13 +35,30 @@ struct SettingsView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    sectionLabel("Daily limits")
+                    sectionLabel("Categories")
+                    Text("Rename categories, set daily minutes, and choose exactly which apps or sites count.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(FiltrTheme.muted)
+
                     ForEach(store.categories) { config in
-                        CategorySettingsCard(
+                        CategoryEditorCard(
                             store: store,
-                            tracker: tracker,
-                            config: config
+                            config: config,
+                            onManageApps: { pickerCategory = config.id },
+                            onBeginRename: {
+                                renamingID = config.id
+                                renameText = config.name
+                            },
+                            onDelete: { store.deleteCategory(config.id) }
                         )
+                    }
+
+                    HStack(spacing: 8) {
+                        TextField("New category name", text: $newCategoryName)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit { addCategory() }
+                        Button("Add category") { addCategory() }
+                            .disabled(newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
 
                     sectionLabel("Updates")
@@ -50,13 +73,10 @@ struct SettingsView: View {
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.white.opacity(0.55))
-                    )
+                    .background(cardBackground)
 
                     sectionLabel("Permissions")
-                    Text("Browser tracking is best-effort for Safari and Chrome. Grant Accessibility (and Automation if prompted) in System Settings.")
+                    Text("Browser site matching needs Accessibility (and sometimes Automation). App tracking works without it.")
                         .font(.system(size: 11))
                         .foregroundStyle(FiltrTheme.muted)
                         .fixedSize(horizontal: false, vertical: true)
@@ -81,8 +101,46 @@ struct SettingsView: View {
                 .padding(20)
             }
         }
-        .frame(width: 440, height: 560)
+        .frame(width: 480, height: 620)
         .background(FiltrTheme.wash)
+        .sheet(item: $pickerCategory) { id in
+            AppPickerSheet(
+                store: store,
+                tracker: tracker,
+                catalog: catalog,
+                categoryID: id
+            )
+        }
+        .sheet(isPresented: Binding(
+            get: { renamingID != nil },
+            set: { if !$0 { renamingID = nil } }
+        )) {
+            renameSheet
+        }
+    }
+
+    private var renameSheet: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Rename category")
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+            TextField("Name", text: $renameText)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit { commitRename() }
+            HStack {
+                Spacer()
+                Button("Cancel") { renamingID = nil }
+                Button("Save") { commitRename() }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(renameText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(width: 320)
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(Color.white.opacity(0.55))
     }
 
     private func sectionLabel(_ text: String) -> some View {
@@ -92,23 +150,38 @@ struct SettingsView: View {
             .textCase(.uppercase)
             .tracking(0.4)
     }
+
+    private func addCategory() {
+        let name = newCategoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        store.addCategory(name: name)
+        newCategoryName = ""
+    }
+
+    private func commitRename() {
+        guard let id = renamingID else { return }
+        store.renameCategory(id, to: renameText)
+        renamingID = nil
+    }
 }
 
-struct CategorySettingsCard: View {
+struct CategoryEditorCard: View {
     @ObservedObject var store: FiltrStore
-    @ObservedObject var tracker: UsageTracker
     let config: CategoryConfig
-
-    @State private var minutesText: String = ""
+    var onManageApps: () -> Void
+    var onBeginRename: () -> Void
+    var onDelete: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
+        let live = store.category(for: config.id) ?? config
+
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center) {
                 Toggle(isOn: Binding(
                     get: { store.category(for: config.id)?.enabled ?? false },
                     set: { store.setEnabled($0, for: config.id) }
                 )) {
-                    Text(config.displayName)
+                    Text(live.displayName)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(FiltrTheme.ink)
                 }
@@ -117,60 +190,79 @@ struct CategorySettingsCard: View {
 
                 Spacer()
 
-                HStack(spacing: 4) {
-                    TextField("min", text: $minutesText)
-                        .frame(width: 52)
-                        .textFieldStyle(.roundedBorder)
-                        .onAppear {
-                            minutesText = "\(config.dailyLimitMinutes)"
-                        }
-                        .onSubmit { commitMinutes() }
-                    Text("min / day")
-                        .font(.system(size: 12))
+                Stepper(value: Binding(
+                    get: { store.category(for: config.id)?.dailyLimitMinutes ?? config.dailyLimitMinutes },
+                    set: { store.setLimit(minutes: $0, for: config.id) }
+                ), in: 5...24 * 60, step: 5) {
+                    Text("\(live.dailyLimitMinutes) min / day")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(FiltrTheme.muted)
+                        .frame(minWidth: 88, alignment: .trailing)
                 }
                 .disabled(!(store.category(for: config.id)?.enabled ?? false))
             }
 
-            if config.id == .other {
+            if live.id == .other {
                 Text("Only apps and sites you assign here count — not leftover screen time.")
                     .font(.system(size: 11))
                     .foregroundStyle(FiltrTheme.muted)
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                ForEach(store.category(for: config.id)?.mappings ?? []) { mapping in
-                    HStack {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(mapping.appName)
-                                .font(.system(size: 12, weight: .medium))
-                            Text(subtitle(for: mapping))
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundStyle(FiltrTheme.muted)
-                                .lineLimit(1)
+                if live.mappings.isEmpty {
+                    Text("No apps or sites yet — use Choose apps… to pick them.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(FiltrTheme.muted)
+                        .padding(.vertical, 4)
+                } else {
+                    ForEach(live.mappings) { mapping in
+                        HStack(spacing: 8) {
+                            Image(systemName: mapping.hostPatterns.isEmpty ? "app.fill" : "globe")
+                                .font(.system(size: 11))
+                                .foregroundStyle(FiltrTheme.accent)
+                                .frame(width: 16)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(mapping.appName)
+                                    .font(.system(size: 12, weight: .medium))
+                                Text(subtitle(for: mapping))
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundStyle(FiltrTheme.muted)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Button {
+                                store.removeMapping(id: mapping.id, from: config.id)
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(FiltrTheme.muted)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Remove")
                         }
-                        Spacer()
-                        Button {
-                            store.removeMapping(id: mapping.id, from: config.id)
-                        } label: {
-                            Image(systemName: "minus.circle")
-                                .foregroundStyle(FiltrTheme.muted)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Remove")
                     }
                 }
 
-                Button {
-                    addFrontmost()
-                    commitMinutes()
-                } label: {
-                    Label("Add frontmost app", systemImage: "plus")
+                HStack(spacing: 14) {
+                    Button(action: onManageApps) {
+                        Label("Choose apps…", systemImage: "plus.app")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(FiltrTheme.accent)
+
+                    Button("Rename", action: onBeginRename)
+                        .buttonStyle(.plain)
                         .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(FiltrTheme.muted)
+
+                    if !live.isBuiltIn {
+                        Button("Delete", role: .destructive, action: onDelete)
+                            .buttonStyle(.plain)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(FiltrTheme.warn)
+                    }
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(FiltrTheme.accent)
-                .disabled(tracker.frontmostAppName.isEmpty)
+                .padding(.top, 4)
             }
             .padding(10)
             .background(
@@ -178,7 +270,11 @@ struct CategorySettingsCard: View {
                     .fill(Color.white.opacity(0.55))
             )
         }
-        .onDisappear { commitMinutes() }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.35))
+        )
     }
 
     private func subtitle(for mapping: AppMapping) -> String {
@@ -187,40 +283,6 @@ struct CategorySettingsCard: View {
         if !mapping.hostPatterns.isEmpty {
             parts.append(mapping.hostPatterns.joined(separator: ", "))
         }
-        return parts.isEmpty ? "App name only" : parts.joined(separator: " · ")
-    }
-
-    private func commitMinutes() {
-        if let value = Int(minutesText.trimmingCharacters(in: .whitespaces)) {
-            store.setLimit(minutes: value, for: config.id)
-        } else {
-            minutesText = "\(store.category(for: config.id)?.dailyLimitMinutes ?? 0)"
-        }
-    }
-
-    private func addFrontmost() {
-        let name = tracker.frontmostAppName
-        guard !name.isEmpty else { return }
-        if BrowserURLResolver.isBrowser(bundleID: tracker.frontmostBundleID) {
-            if let host = tracker.activeHost {
-                store.addMapping(
-                    AppMapping(
-                        bundleIdentifier: nil,
-                        appName: host,
-                        hostPatterns: [host]
-                    ),
-                    to: config.id
-                )
-            }
-            return
-        }
-        store.addMapping(
-            AppMapping(
-                bundleIdentifier: tracker.frontmostBundleID,
-                appName: name,
-                hostPatterns: []
-            ),
-            to: config.id
-        )
+        return parts.isEmpty ? "Matches app name" : parts.joined(separator: " · ")
     }
 }

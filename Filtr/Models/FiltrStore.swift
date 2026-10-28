@@ -14,10 +14,27 @@ final class FiltrStore: ObservableObject {
     init(persistence: PersistenceService = PersistenceService()) {
         self.persistence = persistence
         let saved = persistence.load()
-        self.categories = saved.categories
+        self.categories = Self.normalize(saved.categories)
         self.dayUsage = saved.dayUsage
         self.hasCompletedSetup = UserDefaults.standard.bool(forKey: setupKey)
         ensureToday()
+    }
+
+    /// Migrate older payloads that may lack `name`.
+    private static func normalize(_ list: [CategoryConfig]) -> [CategoryConfig] {
+        if list.isEmpty { return FiltrDefaults.starterCategories() }
+        return list.map { config in
+            var c = config
+            if c.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                switch c.id {
+                case .youtube: c.name = "YouTube"
+                case .gaming: c.name = "Gaming"
+                case .other: c.name = "Other"
+                default: c.name = "Category"
+                }
+            }
+            return c
+        }
     }
 
     func completeSetup() {
@@ -38,6 +55,10 @@ final class FiltrStore: ObservableObject {
 
     func category(for id: CategoryID) -> CategoryConfig? {
         categories.first { $0.id == id }
+    }
+
+    func displayName(for id: CategoryID) -> String {
+        category(for: id)?.displayName ?? id.rawValue
     }
 
     func effectiveLimitMinutes(for id: CategoryID) -> Int {
@@ -82,7 +103,7 @@ final class FiltrStore: ObservableObject {
 
     func setLimit(minutes: Int, for id: CategoryID) {
         guard var config = category(for: id) else { return }
-        config.dailyLimitMinutes = max(0, minutes)
+        config.dailyLimitMinutes = max(1, min(24 * 60, minutes))
         updateCategory(config)
     }
 
@@ -92,20 +113,71 @@ final class FiltrStore: ObservableObject {
         updateCategory(config)
     }
 
+    func renameCategory(_ id: CategoryID, to name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, var config = category(for: id) else { return }
+        config.name = trimmed
+        updateCategory(config)
+    }
+
+    func addCategory(name: String, limitMinutes: Int = 60) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let config = CategoryConfig(
+            id: .makeCustom(),
+            name: trimmed,
+            enabled: true,
+            dailyLimitMinutes: max(1, limitMinutes),
+            mappings: []
+        )
+        categories.append(config)
+        persist()
+    }
+
+    func deleteCategory(_ id: CategoryID) {
+        // Built-ins can be disabled, but not deleted — keeps defaults stable.
+        guard !id.isBuiltIn else { return }
+        categories.removeAll { $0.id == id }
+        if softLimitCategory == id { softLimitCategory = nil }
+        persist()
+    }
+
     func addMapping(_ mapping: AppMapping, to id: CategoryID) {
         guard var config = category(for: id) else { return }
-        if config.mappings.contains(where: {
-            $0.bundleIdentifier == mapping.bundleIdentifier && $0.appName == mapping.appName
-        }) {
-            return
+        let duplicate = config.mappings.contains { existing in
+            if let bid = mapping.bundleIdentifier, !bid.isEmpty,
+               existing.bundleIdentifier == bid {
+                return true
+            }
+            if !mapping.hostPatterns.isEmpty,
+               Set(existing.hostPatterns) == Set(mapping.hostPatterns),
+               existing.bundleIdentifier == nil {
+                return true
+            }
+            return existing.appName.caseInsensitiveCompare(mapping.appName) == .orderedSame
+                && existing.bundleIdentifier == mapping.bundleIdentifier
+                && existing.hostPatterns == mapping.hostPatterns
         }
+        if duplicate { return }
         config.mappings.append(mapping)
         updateCategory(config)
+    }
+
+    func addMappings(_ mappings: [AppMapping], to id: CategoryID) {
+        for mapping in mappings {
+            addMapping(mapping, to: id)
+        }
     }
 
     func removeMapping(id mappingID: UUID, from categoryID: CategoryID) {
         guard var config = category(for: categoryID) else { return }
         config.mappings.removeAll { $0.id == mappingID }
+        updateCategory(config)
+    }
+
+    func replaceMappings(_ mappings: [AppMapping], for id: CategoryID) {
+        guard var config = category(for: id) else { return }
+        config.mappings = mappings
         updateCategory(config)
     }
 
@@ -139,7 +211,8 @@ final class FiltrStore: ObservableObject {
 
     func evaluateSoftLimit(now: Date = Date()) {
         ensureToday(now: now)
-        for id in CategoryID.allCases {
+        for config in categories where config.enabled {
+            let id = config.id
             guard isOverLimit(for: id) else { continue }
             if let dismissed = dayUsage.lastDismissed(for: id) {
                 if now.timeIntervalSince(dismissed) < FiltrDefaults.dismissReNudgeSeconds {

@@ -8,9 +8,9 @@ Personal daily limits for distracting apps and sites — a calm Mac menu-bar com
 
 Prebuilt macOS binaries (unsigned) from GitHub Releases — no Xcode required:
 
-- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.1/Filtr.app.zip)** — unzip, then open `Filtr.app`
-- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.1/Filtr.dmg)** — open the disk image and run Filtr
-- Release page: **[v0.2.1](https://github.com/2819-dev/FilterConnect/releases/tag/v0.2.1)**
+- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.3.0/Filtr.app.zip)** — unzip, then open `Filtr.app`
+- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.3.0/Filtr.dmg)** — open the disk image and run Filtr
+- Release page: **[v0.3.0](https://github.com/2819-dev/FilterConnect/releases/tag/v0.3.0)**
 
 Open the **.dmg** → drag **Filtr** onto **Applications** (the window says so).
 
@@ -50,9 +50,9 @@ Sign in with a free Apple ID in Xcode if prompted for signing. No paid Apple Dev
 
 ## Using Filtr
 
-1. Click the menu-bar icon → today’s usage vs limits for **YouTube**, **Gaming**, and **Other**.
-2. Open **Settings…** to edit daily limits and app/site mappings.
-3. Gaming ships with a small starter list (Steam, Epic, Battle.net, Riot, Minecraft, Twitch hosts, …). Use **Add frontmost app** to map whatever you’re in.
+1. Click the menu-bar icon → today’s usage vs limits per category.
+2. Open **Settings…** to rename categories, add new ones, set minutes, and **Choose apps…** from everything installed on your Mac (plus website hosts / frontmost app).
+3. Gaming ships with a starter list you can edit; Other stays empty until you assign apps or sites.
 4. Defaults: YouTube **30 min**, Gaming **60 min**, Other **off**.
 
 ## Permissions (browser tracking)

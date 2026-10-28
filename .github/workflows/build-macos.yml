@@ -14,9 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FILTR_TAG: v0.2.1
-  FILTR_VERSION: 0.2.1
-  FILTR_BUILD: "21"
+  FILTR_TAG: v0.3.0
+  FILTR_VERSION: 0.3.0
+  FILTR_BUILD: "30"
 
 jobs:
   build:
@@ -80,16 +80,21 @@ jobs:
         run: |
           set -euo pipefail
           TAG="${FILTR_TAG}"
-          TITLE="Filtr ${FILTR_VERSION} — fancy installer DMG"
+          TITLE="Filtr ${FILTR_VERSION} — full category & app customization"
           NOTES="$(cat <<'EOF'
-          Professional menu-bar Filtr with first-run setup, in-app updates, and a drag-to-Applications installer DMG.
+          Customize categories and pick real apps/sites — no placeholders.
 
           **Install**
-          1. Download `Filtr.dmg` (preferred) or `Filtr.app.zip`
-          2. Open the DMG → **Drag Filtr to Applications**
-          3. First launch: **Right-click → Open** (Gatekeeper; unsigned)
+          1. Open `Filtr.dmg` → **Drag Filtr to Applications**
+          2. First launch: **Right-click → Open** (Gatekeeper; unsigned)
 
-          Soft limits only. Grant Accessibility / Automation for browser site matching.
+          **Customization**
+          - Rename built-in categories or add your own
+          - Choose installed apps from a searchable picker
+          - Add website hosts and the frontmost app
+          - Setup flow includes limits + apps & sites steps
+
+          Soft limits + in-app updates from GitHub Releases.
           EOF
           )"
 
