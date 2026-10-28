@@ -23,6 +23,7 @@ struct FiltrApp: App {
                     softLimit.attach(store: store)
                     store.evaluateSoftLimit()
                     presentSetupIfNeeded()
+                    updates.checkInBackground()
                 }
         } label: {
             MenuBarLabel(store: store)

@@ -31,11 +31,11 @@ Replay anytime from **Settings → Replay setup guide…**.
 
 ## Auto-updates
 
-Filtr uses **Sparkle** to check GitHub Releases and install updates in place — no need to re-download the zip each time.
+Filtr checks **GitHub Releases** in the background and can download + install a newer `Filtr.app.zip` for you — no manual re-download.
 
-- Automatic background checks (about daily)
-- **Check for Updates…** in the menu bar popover and Settings
-- Feed: `https://github.com/2819-dev/FilterConnect/releases/latest/download/appcast.xml`
+- Quiet check on launch (prompts only when something newer exists)
+- **Check for Updates** in the menu bar popover and Settings
+- Installs over the current app location, then relaunches (prefer `/Applications`)
 
 ## Open in Xcode
 

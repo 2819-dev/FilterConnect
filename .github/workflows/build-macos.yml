@@ -17,7 +17,6 @@ env:
   FILTR_TAG: v0.2.0
   FILTR_VERSION: 0.2.0
   FILTR_BUILD: "20"
-  SPARKLE_VERSION: 2.6.4
 
 jobs:
   build:
@@ -30,7 +29,6 @@ jobs:
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
-          xcodebuild -resolvePackageDependencies -project Filtr.xcodeproj -scheme Filtr
           xcodebuild -list -project Filtr.xcodeproj
 
       - name: Build Release (unsigned / ad-hoc)
@@ -74,54 +72,6 @@ jobs:
           rm -rf "${staging}"
           ls -lh dist/
 
-      - name: Sign update + write Sparkle appcast
-        run: |
-          set -euo pipefail
-          curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" \
-            | tar -xJ
-          # Tools live in ./bin after extract
-          SIGN_BIN="$(find . -path '*/bin/sign_update' -type f | head -n 1)"
-          if [[ -z "${SIGN_BIN}" ]]; then
-            echo "sign_update not found after Sparkle extract"; find . -maxdepth 3 -type f -name 'sign_update' || true; ls -la; exit 1
-          fi
-          chmod +x "${SIGN_BIN}"
-          # Output like: sparkle:edSignature="..." length="123"
-          SIGN_OUT="$("${SIGN_BIN}" dist/Filtr.app.zip -f ci/sparkle/eddsa_priv.key)"
-          echo "sign_update: ${SIGN_OUT}"
-          ED_SIG="$(echo "${SIGN_OUT}" | sed -n 's/.*edSignature="\([^"]*\)".*/\1/p')"
-          LENGTH="$(echo "${SIGN_OUT}" | sed -n 's/.*length="\([^"]*\)".*/\1/p')"
-          if [[ -z "${ED_SIG}" || -z "${LENGTH}" ]]; then
-            # Newer sign_update may print only signature on one line
-            if [[ -z "${ED_SIG}" ]]; then ED_SIG="$(echo "${SIGN_OUT}" | tr -d '\n' | awk '{print $1}')"; fi
-            if [[ -z "${LENGTH}" ]]; then LENGTH="$(stat -f%z dist/Filtr.app.zip)"; fi
-          fi
-          PUB_HTML="https://github.com/${{ github.repository }}/releases/download/${FILTR_TAG}/Filtr.app.zip"
-          PUB_DATE="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
-          cat > dist/appcast.xml <<EOF
-          <?xml version="1.0" standalone="yes"?>
-          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-            <channel>
-              <title>Filtr</title>
-              <item>
-                <title>Filtr ${FILTR_VERSION}</title>
-                <pubDate>${PUB_DATE}</pubDate>
-                <sparkle:version>${FILTR_BUILD}</sparkle:version>
-                <sparkle:shortVersionString>${FILTR_VERSION}</sparkle:shortVersionString>
-                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-                <enclosure
-                  url="${PUB_HTML}"
-                  length="${LENGTH}"
-                  type="application/octet-stream"
-                  sparkle:edSignature="${ED_SIG}" />
-              </item>
-            </channel>
-          </rss>
-          EOF
-          # Trim leading spaces from heredoc indent
-          sed -i '' 's/^          //' dist/appcast.xml || sed -i 's/^          //' dist/appcast.xml
-          echo "---- appcast.xml ----"
-          cat dist/appcast.xml
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -129,7 +79,6 @@ jobs:
           path: |
             dist/Filtr.app.zip
             dist/Filtr.dmg
-            dist/appcast.xml
           if-no-files-found: error
 
       - name: Publish GitHub Release
@@ -140,7 +89,7 @@ jobs:
           TAG="${FILTR_TAG}"
           TITLE="Filtr ${FILTR_VERSION} — setup + auto-updates"
           NOTES="$(cat <<'EOF'
-          Professional menu-bar Filtr with first-run setup and in-app Sparkle updates.
+          Professional menu-bar Filtr with first-run setup and in-app updates from GitHub Releases.
 
           **Install**
           1. Download `Filtr.app.zip` or `Filtr.dmg`
@@ -149,14 +98,14 @@ jobs:
 
           **What’s new**
           - First-run setup flow (limits + permissions)
-          - In-app auto-updates via Sparkle (no manual re-download)
+          - In-app updates: Filtr checks GitHub Releases and can install newer builds for you
           - Polished menu bar / settings UI
 
           Soft limits only. Grant Accessibility / Automation for browser site matching.
           EOF
           )"
 
-          ASSETS=(dist/Filtr.app.zip dist/Filtr.dmg dist/appcast.xml)
+          ASSETS=(dist/Filtr.app.zip dist/Filtr.dmg)
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release upload "${TAG}" "${ASSETS[@]}" --clobber
             gh release edit "${TAG}" --title "${TITLE}" --notes "${NOTES}"
@@ -169,4 +118,3 @@ jobs:
           echo "Release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
           echo "Zip: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.app.zip"
           echo "DMG: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.dmg"
-          echo "Appcast: https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml"
