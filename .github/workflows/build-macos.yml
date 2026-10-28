@@ -1,0 +1,109 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcodebuild -list -project Filtr.xcodeproj
+
+      - name: Build Release (unsigned / ad-hoc)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project Filtr.xcodeproj \
+            -scheme Filtr \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ENABLE_HARDENED_RUNTIME=NO \
+            DEVELOPMENT_TEAM= \
+            build
+
+      - name: Package zip + dmg
+        run: |
+          set -euo pipefail
+          APP="$(find DerivedData/Build/Products/Release -name 'Filtr.app' -type d -maxdepth 2 | head -n 1)"
+          if [[ -z "${APP}" || ! -d "${APP}" ]]; then
+            echo "Filtr.app not found under DerivedData/Build/Products/Release"
+            find DerivedData -name '*.app' -type d || true
+            exit 1
+          fi
+          echo "Found app at: ${APP}"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "${APP}" dist/Filtr.app.zip
+          # Simple read-only DMG via hdiutil (no paid tools)
+          staging="$(mktemp -d)"
+          cp -R "${APP}" "${staging}/Filtr.app"
+          hdiutil create \
+            -volname "Filtr" \
+            -srcfolder "${staging}" \
+            -ov \
+            -format UDZO \
+            dist/Filtr.dmg
+          rm -rf "${staging}"
+          ls -lh dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Filtr-macOS
+          path: |
+            dist/Filtr.app.zip
+            dist/Filtr.dmg
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        # Release on main, manual dispatch, and PR builds (so download works before merge)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="v0.1.0"
+          TITLE="Filtr v0.1.0 (MVP)"
+          NOTES="$(cat <<'EOF'
+          Unsigned personal build of Filtr (macOS 14+).
+
+          **Install**
+          1. Download `Filtr.app.zip` or `Filtr.dmg`
+          2. Unzip / open the DMG and drag Filtr to Applications (optional)
+          3. First launch: **Right-click → Open** (Gatekeeper; not notarized)
+
+          Soft limits only. Grant Accessibility / Automation for browser site matching.
+          EOF
+          )"
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" dist/Filtr.app.zip dist/Filtr.dmg --clobber
+            gh release edit "${TAG}" --title "${TITLE}" --notes "${NOTES}"
+          else
+            gh release create "${TAG}" dist/Filtr.app.zip dist/Filtr.dmg \
+              --title "${TITLE}" \
+              --notes "${NOTES}"
+          fi
+
+          echo "Release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
+          echo "Zip: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.app.zip"
+          echo "DMG: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.dmg"

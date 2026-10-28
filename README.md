@@ -4,6 +4,18 @@ Personal daily limits for distracting apps and sites — a calm Mac menu-bar com
 
 **Requires macOS 14+ (Sonoma).**
 
+## Download
+
+Prebuilt macOS binaries (unsigned) from GitHub Releases — no Xcode required:
+
+- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.1.0/Filtr.app.zip)** — unzip, then open `Filtr.app`
+- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.1.0/Filtr.dmg)** — open the disk image and run Filtr
+- Release page: **[v0.1.0](https://github.com/2819-dev/FilterConnect/releases/tag/v0.1.0)**
+
+First launch: **Right-click → Open** (or System Settings → Privacy & Security → Open Anyway). Gatekeeper warns because the build isn’t notarized — expected for free personal unsigned apps.
+
+If the Release assets aren’t up yet, check the latest green **Build macOS** workflow run → Artifacts → `Filtr-macOS`.
+
 ## Open in Xcode
 
 1. Clone this repo on your Mac.
@@ -46,13 +58,9 @@ Actions: **+1 min**, **+15 min**, **For today**.
 
 Nothing is blocked or quit — awareness + friction only.
 
-## Ad-hoc / unsigned builds (Gatekeeper)
+## Build from source / Gatekeeper
 
-After **Product → Archive** (or copy the built `.app` from DerivedData):
-
-1. Move `Filtr.app` to `/Applications` (optional).
-2. First launch: **Right-click → Open** (or System Settings → Privacy & Security → Open Anyway).
-3. Gatekeeper warns because the build isn’t notarized. That’s expected for free personal unsigned apps.
+Prefer the [Download](#download) links above. To build yourself: **Product → Archive** in Xcode (or use the **Build macOS** GitHub Action). Same Gatekeeper note: Right-click → Open for unsigned builds.
 
 ## Privacy
 
@@ -62,4 +70,4 @@ Everything stays on your Mac (UserDefaults JSON). No account, no network, no ana
 
 - Browser URL APIs are **best-effort**: title/Automation prompts and AX attributes vary by browser version; Arc relies more on Accessibility.
 - No hard blocking, Screen Time shields, or cross-device sync (by design for v1).
-- Cannot be compiled or run in this Linux CI environment — build on a Mac with Xcode.
+- Release builds are unsigned (no paid Apple Developer / notarization).
