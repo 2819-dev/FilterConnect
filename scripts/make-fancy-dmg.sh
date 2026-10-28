@@ -18,57 +18,89 @@ if [[ ! -f "${BG_SRC}" ]]; then
 fi
 
 STAGE="$(mktemp -d /tmp/filtr-dmg-XXXXXX)"
-RW_DMG="${STAGE}/Filtr-rw.dmg"
-MOUNT_DIR="${STAGE}/mnt"
-VOLUME_NAME="Filtr Installer"
+VOLUME_NAME="Filtr"
 WINDOW_W=660
 WINDOW_H=420
 ICON_SIZE=96
-# Icon positions inside Finder window (icon centers relative to content view)
 APP_X=165
 APP_Y=210
 APPS_X=495
 APPS_Y=210
 
-cleanup() {
-  if [[ -d "${MOUNT_DIR}" ]]; then
-    hdiutil detach "${MOUNT_DIR}" -force >/dev/null 2>&1 || true
+detach_volume() {
+  if [[ -d "/Volumes/${VOLUME_NAME}" ]]; then
+    hdiutil detach "/Volumes/${VOLUME_NAME}" -force >/dev/null 2>&1 || true
   fi
+}
+
+cleanup() {
+  detach_volume
   rm -rf "${STAGE}"
 }
 trap cleanup EXIT
 
-mkdir -p "${MOUNT_DIR}"
 mkdir -p "${STAGE}/content"
 cp -R "${APP_SRC}" "${STAGE}/content/Filtr.app"
 ln -s /Applications "${STAGE}/content/Applications"
+mkdir -p "${STAGE}/content/.background"
+cp "${BG_SRC}" "${STAGE}/content/.background/background.png"
 
-# Create a writable sparseimage, copy contents, then style Finder window
+# Size estimate: app + padding
+SIZE_MB=150
+RW_DMG="${STAGE}/Filtr-rw.dmg"
+detach_volume
+rm -f "${RW_DMG}" "${DMG_OUT}"
+
 hdiutil create \
-  -size 120m \
-  -fs HFS+ \
+  -srcfolder "${STAGE}/content" \
   -volname "${VOLUME_NAME}" \
-  -type SPARSE \
-  "${STAGE}/Filtr"
+  -fs HFS+ \
+  -fsargs "-c c=64,a=16,e=16" \
+  -format UDRW \
+  -size ${SIZE_MB}m \
+  "${RW_DMG}"
 
-hdiutil attach "${STAGE}/Filtr.sparseimage" -mountpoint "${MOUNT_DIR}" -nobrowse
-
-# Copy app + Applications alias
-cp -R "${STAGE}/content/Filtr.app" "${MOUNT_DIR}/Filtr.app"
-ln -s /Applications "${MOUNT_DIR}/Applications"
-
-# Hidden background folder (Finder DMG convention)
-mkdir -p "${MOUNT_DIR}/.background"
-cp "${BG_SRC}" "${MOUNT_DIR}/.background/background.png"
-# Also place @2x if present
-if [[ -f "${ROOT}/Design/dmg-background@2x.png" ]]; then
-  cp "${ROOT}/Design/dmg-background@2x.png" "${MOUNT_DIR}/.background/karen.d@example.net"
+# Mount read-write so Finder can write .DS_Store / view options
+detach_volume
+DEVICE_LINE="$(hdiutil attach -readwrite -noverify -noautoopen "${RW_DMG}" | tee /dev/stderr | tail -n 1)"
+# e.g. /dev/disk3s1  Apple_HFS  /Volumes/Filtr
+VOLUME_PATH="/Volumes/${VOLUME_NAME}"
+for _ in $(seq 1 30); do
+  if [[ -d "${VOLUME_PATH}" ]]; then
+    break
+  fi
+  sleep 0.5
+done
+if [[ ! -d "${VOLUME_PATH}" ]]; then
+  echo "Volume did not appear at ${VOLUME_PATH}" >&2
+  echo "attach output: ${DEVICE_LINE}" >&2
+  exit 1
 fi
 
-# Style the Finder window: icon view, background, positions, text
-osascript <<EOF
+# Ensure Applications symlink + background exist on the mounted volume
+if [[ ! -e "${VOLUME_PATH}/Applications" ]]; then
+  ln -s /Applications "${VOLUME_PATH}/Applications"
+fi
+mkdir -p "${VOLUME_PATH}/.background"
+cp "${BG_SRC}" "${VOLUME_PATH}/.background/background.png"
+
+# Give Finder a moment to notice the disk
+sleep 2
+open "${VOLUME_PATH}"
+sleep 2
+
+# Style Finder window. Retry a few times — CI runners can be slow to register disks.
+styled=0
+for attempt in 1 2 3 4 5; do
+  if osascript <<EOF
 tell application "Finder"
-  tell disk "${VOLUME_NAME}"
+  activate
+  try
+    set theDisk to disk "${VOLUME_NAME}"
+  on error
+    error "disk not ready"
+  end try
+  tell theDisk
     open
     set current view of container window to icon view
     set toolbar visible of container window to false
@@ -78,23 +110,52 @@ tell application "Finder"
     set arrangement of opts to not arranged
     set icon size of opts to ${ICON_SIZE}
     set text size of opts to 12
-    set background picture of opts to file ".background:background.png"
-    set position of item "Filtr.app" of container window to {${APP_X}, ${APP_Y}}
-    set position of item "Applications" of container window to {${APPS_X}, ${APPS_Y}}
+    try
+      set background picture of opts to file ".background:background.png"
+    end try
+    set position of item "Filtr.app" to {${APP_X}, ${APP_Y}}
+    set position of item "Applications" to {${APPS_X}, ${APPS_Y}}
     update without registering applications
     delay 1
-    close
-    open
-    delay 1
-    set the bounds of container window to {120, 120, $((120 + WINDOW_W)), $((120 + WINDOW_H))}
     close
   end tell
 end tell
 EOF
+  then
+    styled=1
+    echo "Finder window styled (attempt ${attempt})"
+    break
+  else
+    echo "Finder style attempt ${attempt} failed; retrying…"
+    sleep 2
+    open "${VOLUME_PATH}" || true
+    sleep 1
+  fi
+done
+
+if [[ "${styled}" -ne 1 ]]; then
+  echo "Warning: could not style Finder window; shipping DMG with background file + icons anyway" >&2
+fi
 
 sync
-hdiutil detach "${MOUNT_DIR}" -force
+sleep 1
+# Bless the folder so .DS_Store sticks
+if command -v bless >/dev/null 2>&1; then
+  bless --folder "${VOLUME_PATH}" --openfolder "${VOLUME_PATH}" || true
+fi
+
+# Unmount cleanly
+for _ in $(seq 1 10); do
+  if hdiutil detach "${VOLUME_PATH}" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+  # Force close Finder windows on the volume
+  osascript -e 'tell application "Finder" to close every window' >/dev/null 2>&1 || true
+done
+detach_volume
+
 mkdir -p "$(dirname "${DMG_OUT}")"
-rm -f "${DMG_OUT}"
-hdiutil convert "${STAGE}/Filtr.sparseimage" -format UDZO -imagekey zlib-level=9 -o "${DMG_OUT}"
+hdiutil convert "${RW_DMG}" -format UDZO -imagekey zlib-level=9 -o "${DMG_OUT}"
 echo "Created ${DMG_OUT}"
+ls -lh "${DMG_OUT}"

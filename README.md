@@ -8,9 +8,11 @@ Personal daily limits for distracting apps and sites — a calm Mac menu-bar com
 
 Prebuilt macOS binaries (unsigned) from GitHub Releases — no Xcode required:
 
-- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.0/Filtr.app.zip)** — unzip, then open `Filtr.app`
-- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.0/Filtr.dmg)** — open the disk image and run Filtr
-- Release page: **[v0.2.0](https://github.com/2819-dev/FilterConnect/releases/tag/v0.2.0)**
+- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.1/Filtr.app.zip)** — unzip, then open `Filtr.app`
+- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.1/Filtr.dmg)** — open the disk image and run Filtr
+- Release page: **[v0.2.1](https://github.com/2819-dev/FilterConnect/releases/tag/v0.2.1)**
+
+Open the **.dmg** → drag **Filtr** onto **Applications** (the window says so).
 
 First launch: **Right-click → Open** (or System Settings → Privacy & Security → Open Anyway). Gatekeeper warns because the build isn’t notarized — expected for free personal unsigned apps.
 
