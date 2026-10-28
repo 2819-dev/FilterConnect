@@ -14,9 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FILTR_TAG: v0.3.0
-  FILTR_VERSION: 0.3.0
-  FILTR_BUILD: "30"
+  FILTR_TAG: v0.3.1
+  FILTR_VERSION: 0.3.1
+  FILTR_BUILD: "31"
 
 jobs:
   build:
@@ -80,9 +80,9 @@ jobs:
         run: |
           set -euo pipefail
           TAG="${FILTR_TAG}"
-          TITLE="Filtr ${FILTR_VERSION} — full category & app customization"
+          TITLE="Filtr ${FILTR_VERSION} — new Filtr logo"
           NOTES="$(cat <<'EOF'
-          Customize categories and pick real apps/sites — no placeholders.
+          Refined Filtr brand logo for Dock / Finder and the menu bar.
 
           **Install**
           1. Open `Filtr.dmg` → **Drag Filtr to Applications**

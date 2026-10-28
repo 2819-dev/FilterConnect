@@ -8,9 +8,9 @@ Personal daily limits for distracting apps and sites — a calm Mac menu-bar com
 
 Prebuilt macOS binaries (unsigned) from GitHub Releases — no Xcode required:
 
-- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.3.0/Filtr.app.zip)** — unzip, then open `Filtr.app`
-- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.3.0/Filtr.dmg)** — open the disk image and run Filtr
-- Release page: **[v0.3.0](https://github.com/2819-dev/FilterConnect/releases/tag/v0.3.0)**
+- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.3.1/Filtr.app.zip)** — unzip, then open `Filtr.app`
+- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.3.1/Filtr.dmg)** — open the disk image and run Filtr
+- Release page: **[v0.3.1](https://github.com/2819-dev/FilterConnect/releases/tag/v0.3.1)**
 
 Open the **.dmg** → drag **Filtr** onto **Applications** (the window says so).
 
