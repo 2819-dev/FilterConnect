@@ -81,10 +81,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TAG="v0.1.0"
-          TITLE="Filtr v0.1.0 (MVP)"
+          TAG="v0.1.1"
+          TITLE="Filtr v0.1.1 (MVP + icon)"
           NOTES="$(cat <<'EOF'
-          Unsigned personal build of Filtr (macOS 14+).
+          Unsigned personal build of Filtr (macOS 14+), with custom hourglass app / menu-bar icon.
 
           **Install**
           1. Download `Filtr.app.zip` or `Filtr.dmg`

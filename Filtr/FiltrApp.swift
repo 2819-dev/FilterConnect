@@ -36,14 +36,10 @@ struct MenuBarLabel: View {
     @ObservedObject var store: FiltrStore
 
     var body: some View {
-        Image(systemName: iconName)
-            .symbolRenderingMode(.hierarchical)
+        let over = CategoryID.allCases.contains { store.isOverLimit(for: $0) }
+        Image("MenuBarIcon")
+            .renderingMode(.template)
+            .opacity(over ? 1.0 : 0.92)
             .accessibilityLabel("Filtr")
-    }
-
-    private var iconName: String {
-        let anyOver = CategoryID.allCases.contains { store.isOverLimit(for: $0) }
-        if anyOver { return "hourglass.bottomhalf.filled" }
-        return "hourglass"
     }
 }
