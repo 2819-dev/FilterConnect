@@ -14,9 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FILTR_TAG: v0.2.0
-  FILTR_VERSION: 0.2.0
-  FILTR_BUILD: "20"
+  FILTR_TAG: v0.2.1
+  FILTR_VERSION: 0.2.1
+  FILTR_BUILD: "21"
 
 jobs:
   build:
@@ -49,7 +49,7 @@ jobs:
             CURRENT_PROJECT_VERSION="${FILTR_BUILD}" \
             build
 
-      - name: Package zip + dmg
+      - name: Package zip + fancy DMG
         run: |
           set -euo pipefail
           APP="$(find DerivedData/Build/Products/Release -name 'Filtr.app' -type d -maxdepth 2 | head -n 1)"
@@ -61,15 +61,8 @@ jobs:
           echo "Found app at: ${APP}"
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent "${APP}" dist/Filtr.app.zip
-          staging="$(mktemp -d)"
-          cp -R "${APP}" "${staging}/Filtr.app"
-          hdiutil create \
-            -volname "Filtr" \
-            -srcfolder "${staging}" \
-            -ov \
-            -format UDZO \
-            dist/Filtr.dmg
-          rm -rf "${staging}"
+          chmod +x scripts/make-fancy-dmg.sh
+          scripts/make-fancy-dmg.sh "${APP}" dist/Filtr.dmg
           ls -lh dist/
 
       - name: Upload artifact
@@ -87,19 +80,14 @@ jobs:
         run: |
           set -euo pipefail
           TAG="${FILTR_TAG}"
-          TITLE="Filtr ${FILTR_VERSION} — setup + auto-updates"
+          TITLE="Filtr ${FILTR_VERSION} — fancy installer DMG"
           NOTES="$(cat <<'EOF'
-          Professional menu-bar Filtr with first-run setup and in-app updates from GitHub Releases.
+          Professional menu-bar Filtr with first-run setup, in-app updates, and a drag-to-Applications installer DMG.
 
           **Install**
-          1. Download `Filtr.app.zip` or `Filtr.dmg`
-          2. Unzip / open and move Filtr to Applications (recommended)
+          1. Download `Filtr.dmg` (preferred) or `Filtr.app.zip`
+          2. Open the DMG → **Drag Filtr to Applications**
           3. First launch: **Right-click → Open** (Gatekeeper; unsigned)
-
-          **What’s new**
-          - First-run setup flow (limits + permissions)
-          - In-app updates: Filtr checks GitHub Releases and can install newer builds for you
-          - Polished menu bar / settings UI
 
           Soft limits only. Grant Accessibility / Automation for browser site matching.
           EOF

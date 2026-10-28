@@ -40,7 +40,7 @@ Filtr checks **GitHub Releases** in the background and can download + install a 
 ## Open in Xcode
 
 1. Clone this repo on your Mac.
-2. Open **`Filtr.xcodeproj`** in Xcode 15+ (resolves the Sparkle package).
+2. Open **`Filtr.xcodeproj`** in Xcode 15+.
 3. Select the **Filtr** scheme and **My Mac** as the run destination.
 4. Press **Run** (⌘R). Filtr appears in the menu bar (hourglass icon). There is no Dock icon (`LSUIElement`).
 
@@ -85,7 +85,7 @@ Prefer the [Download](#download) links above. To build yourself: **Product → A
 
 ## Privacy
 
-Limits, mappings, and usage stay on your Mac (UserDefaults). The only network use is Sparkle checking/downloading updates from GitHub Releases. No account, no analytics.
+Limits, mappings, and usage stay on your Mac (UserDefaults). The only network use is checking/downloading updates from GitHub Releases. No account, no analytics.
 
 ## Known gaps
 
