@@ -8,24 +8,45 @@ Personal daily limits for distracting apps and sites — a calm Mac menu-bar com
 
 Prebuilt macOS binaries (unsigned) from GitHub Releases — no Xcode required:
 
-- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.1.1/Filtr.app.zip)** — unzip, then open `Filtr.app`
-- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.1.1/Filtr.dmg)** — open the disk image and run Filtr
-- Release page: **[v0.1.1](https://github.com/2819-dev/FilterConnect/releases/tag/v0.1.1)**
+- **[Filtr.app.zip](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.0/Filtr.app.zip)** — unzip, then open `Filtr.app`
+- **[Filtr.dmg](https://github.com/2819-dev/FilterConnect/releases/download/v0.2.0/Filtr.dmg)** — open the disk image and run Filtr
+- Release page: **[v0.2.0](https://github.com/2819-dev/FilterConnect/releases/tag/v0.2.0)**
 
 First launch: **Right-click → Open** (or System Settings → Privacy & Security → Open Anyway). Gatekeeper warns because the build isn’t notarized — expected for free personal unsigned apps.
 
+Prefer putting Filtr in **/Applications** so in-app updates can replace the app cleanly.
+
 If the Release assets aren’t up yet, check the latest green **Build macOS** workflow run → Artifacts → `Filtr-macOS`.
+
+## Setup
+
+On first launch Filtr opens a short setup guide:
+
+1. Welcome
+2. Set daily limits (YouTube / Gaming / Other)
+3. Optional browser permissions (Accessibility / Automation)
+4. Ready
+
+Replay anytime from **Settings → Replay setup guide…**.
+
+## Auto-updates
+
+Filtr uses **Sparkle** to check GitHub Releases and install updates in place — no need to re-download the zip each time.
+
+- Automatic background checks (about daily)
+- **Check for Updates…** in the menu bar popover and Settings
+- Feed: `https://github.com/2819-dev/FilterConnect/releases/latest/download/appcast.xml`
 
 ## Open in Xcode
 
 1. Clone this repo on your Mac.
-2. Open **`Filtr.xcodeproj`** in Xcode 15+.
+2. Open **`Filtr.xcodeproj`** in Xcode 15+ (resolves the Sparkle package).
 3. Select the **Filtr** scheme and **My Mac** as the run destination.
 4. Press **Run** (⌘R). Filtr appears in the menu bar (hourglass icon). There is no Dock icon (`LSUIElement`).
 
 Sign in with a free Apple ID in Xcode if prompted for signing. No paid Apple Developer Program membership is required for personal use.
 
-## First run
+## Using Filtr
 
 1. Click the menu-bar icon → today’s usage vs limits for **YouTube**, **Gaming**, and **Other**.
 2. Open **Settings…** to edit daily limits and app/site mappings.
@@ -64,7 +85,7 @@ Prefer the [Download](#download) links above. To build yourself: **Product → A
 
 ## Privacy
 
-Everything stays on your Mac (UserDefaults JSON). No account, no network, no analytics.
+Limits, mappings, and usage stay on your Mac (UserDefaults). The only network use is Sparkle checking/downloading updates from GitHub Releases. No account, no analytics.
 
 ## Known gaps
 

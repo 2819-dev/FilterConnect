@@ -6,15 +6,34 @@ final class FiltrStore: ObservableObject {
     @Published private(set) var categories: [CategoryConfig]
     @Published private(set) var dayUsage: DayUsage
     @Published var softLimitCategory: CategoryID?
+    @Published private(set) var hasCompletedSetup: Bool
 
     private let persistence: PersistenceService
+    private let setupKey = "filtr.v1.hasCompletedSetup"
 
     init(persistence: PersistenceService = PersistenceService()) {
         self.persistence = persistence
         let saved = persistence.load()
         self.categories = saved.categories
         self.dayUsage = saved.dayUsage
+        self.hasCompletedSetup = UserDefaults.standard.bool(forKey: setupKey)
         ensureToday()
+    }
+
+    func completeSetup() {
+        hasCompletedSetup = true
+        UserDefaults.standard.set(true, forKey: setupKey)
+    }
+
+    func resetSetup() {
+        hasCompletedSetup = false
+        UserDefaults.standard.set(false, forKey: setupKey)
+    }
+
+    var appVersionString: String {
+        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+        return build.isEmpty ? short : "\(short) (\(build))"
     }
 
     func category(for id: CategoryID) -> CategoryConfig? {

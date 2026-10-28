@@ -13,6 +13,12 @@ concurrency:
   group: build-macos-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FILTR_TAG: v0.2.0
+  FILTR_VERSION: 0.2.0
+  FILTR_BUILD: "20"
+  SPARKLE_VERSION: 2.6.4
+
 jobs:
   build:
     runs-on: macos-latest
@@ -24,6 +30,7 @@ jobs:
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
+          xcodebuild -resolvePackageDependencies -project Filtr.xcodeproj -scheme Filtr
           xcodebuild -list -project Filtr.xcodeproj
 
       - name: Build Release (unsigned / ad-hoc)
@@ -40,6 +47,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             ENABLE_HARDENED_RUNTIME=NO \
             DEVELOPMENT_TEAM= \
+            MARKETING_VERSION="${FILTR_VERSION}" \
+            CURRENT_PROJECT_VERSION="${FILTR_BUILD}" \
             build
 
       - name: Package zip + dmg
@@ -54,7 +63,6 @@ jobs:
           echo "Found app at: ${APP}"
           mkdir -p dist
           ditto -c -k --sequesterRsrc --keepParent "${APP}" dist/Filtr.app.zip
-          # Simple read-only DMG via hdiutil (no paid tools)
           staging="$(mktemp -d)"
           cp -R "${APP}" "${staging}/Filtr.app"
           hdiutil create \
@@ -66,6 +74,54 @@ jobs:
           rm -rf "${staging}"
           ls -lh dist/
 
+      - name: Sign update + write Sparkle appcast
+        run: |
+          set -euo pipefail
+          curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" \
+            | tar -xJ
+          # Tools live in ./bin after extract
+          SIGN_BIN="$(find . -path '*/bin/sign_update' -type f | head -n 1)"
+          if [[ -z "${SIGN_BIN}" ]]; then
+            echo "sign_update not found after Sparkle extract"; find . -maxdepth 3 -type f -name 'sign_update' || true; ls -la; exit 1
+          fi
+          chmod +x "${SIGN_BIN}"
+          # Output like: sparkle:edSignature="..." length="123"
+          SIGN_OUT="$("${SIGN_BIN}" dist/Filtr.app.zip -f ci/sparkle/eddsa_priv.key)"
+          echo "sign_update: ${SIGN_OUT}"
+          ED_SIG="$(echo "${SIGN_OUT}" | sed -n 's/.*edSignature="\([^"]*\)".*/\1/p')"
+          LENGTH="$(echo "${SIGN_OUT}" | sed -n 's/.*length="\([^"]*\)".*/\1/p')"
+          if [[ -z "${ED_SIG}" || -z "${LENGTH}" ]]; then
+            # Newer sign_update may print only signature on one line
+            if [[ -z "${ED_SIG}" ]]; then ED_SIG="$(echo "${SIGN_OUT}" | tr -d '\n' | awk '{print $1}')"; fi
+            if [[ -z "${LENGTH}" ]]; then LENGTH="$(stat -f%z dist/Filtr.app.zip)"; fi
+          fi
+          PUB_HTML="https://github.com/${{ github.repository }}/releases/download/${FILTR_TAG}/Filtr.app.zip"
+          PUB_DATE="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
+          cat > dist/appcast.xml <<EOF
+          <?xml version="1.0" standalone="yes"?>
+          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+            <channel>
+              <title>Filtr</title>
+              <item>
+                <title>Filtr ${FILTR_VERSION}</title>
+                <pubDate>${PUB_DATE}</pubDate>
+                <sparkle:version>${FILTR_BUILD}</sparkle:version>
+                <sparkle:shortVersionString>${FILTR_VERSION}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+                <enclosure
+                  url="${PUB_HTML}"
+                  length="${LENGTH}"
+                  type="application/octet-stream"
+                  sparkle:edSignature="${ED_SIG}" />
+              </item>
+            </channel>
+          </rss>
+          EOF
+          # Trim leading spaces from heredoc indent
+          sed -i '' 's/^          //' dist/appcast.xml || sed -i 's/^          //' dist/appcast.xml
+          echo "---- appcast.xml ----"
+          cat dist/appcast.xml
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -73,33 +129,39 @@ jobs:
           path: |
             dist/Filtr.app.zip
             dist/Filtr.dmg
+            dist/appcast.xml
           if-no-files-found: error
 
       - name: Publish GitHub Release
-        # Release on main, manual dispatch, and PR builds (so download works before merge)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          TAG="v0.1.1"
-          TITLE="Filtr v0.1.1 (MVP + icon)"
+          TAG="${FILTR_TAG}"
+          TITLE="Filtr ${FILTR_VERSION} — setup + auto-updates"
           NOTES="$(cat <<'EOF'
-          Unsigned personal build of Filtr (macOS 14+), with custom hourglass app / menu-bar icon.
+          Professional menu-bar Filtr with first-run setup and in-app Sparkle updates.
 
           **Install**
           1. Download `Filtr.app.zip` or `Filtr.dmg`
-          2. Unzip / open the DMG and drag Filtr to Applications (optional)
-          3. First launch: **Right-click → Open** (Gatekeeper; not notarized)
+          2. Unzip / open and move Filtr to Applications (recommended)
+          3. First launch: **Right-click → Open** (Gatekeeper; unsigned)
+
+          **What’s new**
+          - First-run setup flow (limits + permissions)
+          - In-app auto-updates via Sparkle (no manual re-download)
+          - Polished menu bar / settings UI
 
           Soft limits only. Grant Accessibility / Automation for browser site matching.
           EOF
           )"
 
+          ASSETS=(dist/Filtr.app.zip dist/Filtr.dmg dist/appcast.xml)
           if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release upload "${TAG}" dist/Filtr.app.zip dist/Filtr.dmg --clobber
+            gh release upload "${TAG}" "${ASSETS[@]}" --clobber
             gh release edit "${TAG}" --title "${TITLE}" --notes "${NOTES}"
           else
-            gh release create "${TAG}" dist/Filtr.app.zip dist/Filtr.dmg \
+            gh release create "${TAG}" "${ASSETS[@]}" \
               --title "${TITLE}" \
               --notes "${NOTES}"
           fi
@@ -107,3 +169,4 @@ jobs:
           echo "Release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
           echo "Zip: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.app.zip"
           echo "DMG: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.dmg"
+          echo "Appcast: https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml"

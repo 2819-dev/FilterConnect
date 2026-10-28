@@ -6,6 +6,8 @@ struct FiltrApp: App {
     @StateObject private var store: FiltrStore
     @StateObject private var tracker: UsageTracker
     @StateObject private var softLimit = SoftLimitPresenter()
+    @StateObject private var updates = UpdateController()
+    @State private var setupController = SetupWindowController()
 
     init() {
         let store = FiltrStore()
@@ -15,11 +17,12 @@ struct FiltrApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarPopover(store: store, tracker: tracker)
+            MenuBarPopover(store: store, tracker: tracker, updates: updates)
                 .onAppear {
                     tracker.start()
                     softLimit.attach(store: store)
                     store.evaluateSoftLimit()
+                    presentSetupIfNeeded()
                 }
         } label: {
             MenuBarLabel(store: store)
@@ -27,7 +30,21 @@ struct FiltrApp: App {
         .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView(store: store, tracker: tracker)
+            SettingsView(
+                store: store,
+                tracker: tracker,
+                updates: updates,
+                onReplaySetup: {
+                    setupController.present(store: store)
+                }
+            )
+        }
+    }
+
+    private func presentSetupIfNeeded() {
+        guard !store.hasCompletedSetup else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            setupController.present(store: store)
         }
     }
 }
@@ -39,7 +56,7 @@ struct MenuBarLabel: View {
         let over = CategoryID.allCases.contains { store.isOverLimit(for: $0) }
         Image("MenuBarIcon")
             .renderingMode(.template)
-            .opacity(over ? 1.0 : 0.92)
+            .opacity(over ? 1.0 : 0.9)
             .accessibilityLabel("Filtr")
     }
 }

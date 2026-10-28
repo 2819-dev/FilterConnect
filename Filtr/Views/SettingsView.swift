@@ -4,14 +4,21 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var store: FiltrStore
     @ObservedObject var tracker: UsageTracker
+    @ObservedObject var updates: UpdateController
+    var onReplaySetup: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Settings")
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .foregroundStyle(FiltrTheme.ink)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Settings")
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .foregroundStyle(FiltrTheme.ink)
+                    Text("Filtr \(store.appVersionString)")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(FiltrTheme.muted)
+                }
                 Spacer()
                 Button("Done") { dismiss() }
                     .keyboardShortcut(.defaultAction)
@@ -21,12 +28,8 @@ struct SettingsView: View {
             Divider().opacity(0.3)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("Daily limits")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(FiltrTheme.muted)
-                        .textCase(.uppercase)
-
+                VStack(alignment: .leading, spacing: 22) {
+                    sectionLabel("Daily limits")
                     ForEach(store.categories) { config in
                         CategorySettingsCard(
                             store: store,
@@ -35,16 +38,59 @@ struct SettingsView: View {
                         )
                     }
 
+                    sectionLabel("Updates")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(updates.lastCheckSummary)
+                            .font(.system(size: 12))
+                            .foregroundStyle(FiltrTheme.muted)
+                        Button("Check for Updates…") {
+                            updates.checkForUpdates()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.white.opacity(0.55))
+                    )
+
+                    sectionLabel("Permissions")
                     Text("Browser tracking is best-effort for Safari and Chrome. Grant Accessibility (and Automation if prompted) in System Settings.")
                         .font(.system(size: 11))
                         .foregroundStyle(FiltrTheme.muted)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    Button("Open Accessibility settings") {
+                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(FiltrTheme.accent)
+                    .font(.system(size: 12, weight: .medium))
+
+                    Button("Replay setup guide…") {
+                        store.resetSetup()
+                        onReplaySetup?()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(FiltrTheme.muted)
                 }
                 .padding(20)
             }
         }
-        .frame(width: 420, height: 520)
+        .frame(width: 440, height: 560)
         .background(FiltrTheme.wash)
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(FiltrTheme.muted)
+            .textCase(.uppercase)
+            .tracking(0.4)
     }
 }
 
@@ -115,18 +161,16 @@ struct CategorySettingsCard: View {
                     }
                 }
 
-                if config.id == .gaming || config.id == .other || config.id == .youtube {
-                    Button {
-                        addFrontmost()
-                        commitMinutes()
-                    } label: {
-                        Label("Add frontmost app", systemImage: "plus")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(FiltrTheme.accent)
-                    .disabled(tracker.frontmostAppName.isEmpty)
+                Button {
+                    addFrontmost()
+                    commitMinutes()
+                } label: {
+                    Label("Add frontmost app", systemImage: "plus")
+                        .font(.system(size: 12, weight: .medium))
                 }
+                .buttonStyle(.plain)
+                .foregroundStyle(FiltrTheme.accent)
+                .disabled(tracker.frontmostAppName.isEmpty)
             }
             .padding(10)
             .background(
@@ -157,7 +201,6 @@ struct CategorySettingsCard: View {
     private func addFrontmost() {
         let name = tracker.frontmostAppName
         guard !name.isEmpty else { return }
-        // Don’t map Filtr or browsers as “apps” without host — browsers use host patterns
         if BrowserURLResolver.isBrowser(bundleID: tracker.frontmostBundleID) {
             if let host = tracker.activeHost {
                 store.addMapping(

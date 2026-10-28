@@ -15,9 +15,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
@@ -28,5 +28,15 @@
 	<string>Filtr reads the active browser tab URL to match sites like YouTube to your daily limits. This is best-effort and stays on your Mac.</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>Filtr uses Accessibility to read the frontmost browser page URL when AppleScript is unavailable, so site-based limits can work.</string>
+	<key>SUFeedURL</key>
+	<string>https://github.com/2819-dev/FilterConnect/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>X08y8eR2bZ388eJ1cZr6aDOYty2AXu03NzxqOfpxKO0=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUAllowsAutomaticUpdates</key>
+	<true/>
 </dict>
 </plist>

@@ -4,41 +4,62 @@ import SwiftUI
 struct MenuBarPopover: View {
     @ObservedObject var store: FiltrStore
     @ObservedObject var tracker: UsageTracker
+    @ObservedObject var updates: UpdateController
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-            Divider().opacity(0.35)
+            Divider().opacity(0.28)
             usageList
-            Divider().opacity(0.35)
+            Divider().opacity(0.28)
             footer
         }
-        .frame(width: 300)
-        .background(FiltrTheme.wash)
+        .frame(width: 312)
+        .background(
+            LinearGradient(
+                colors: [FiltrTheme.wash, Color(red: 0.94, green: 0.93, blue: 0.91)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .center, spacing: 12) {
+            Image("MenuBarIcon")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .foregroundStyle(FiltrTheme.accent)
+                .padding(8)
+                .background(Circle().fill(FiltrTheme.accent.opacity(0.12)))
+
             VStack(alignment: .leading, spacing: 2) {
                 Text("Filtr")
-                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(FiltrTheme.ink)
-                Text("Today’s limits")
-                    .font(.system(size: 12, weight: .regular))
+                Text("Today")
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(FiltrTheme.muted)
             }
             Spacer()
-            if let host = tracker.activeHost {
-                Text(host)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(FiltrTheme.muted)
-                    .lineLimit(1)
-            } else if !tracker.frontmostAppName.isEmpty {
-                Text(tracker.frontmostAppName)
-                    .font(.system(size: 10))
-                    .foregroundStyle(FiltrTheme.muted)
-                    .lineLimit(1)
+            VStack(alignment: .trailing, spacing: 2) {
+                if let host = tracker.activeHost {
+                    Text(host)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(FiltrTheme.muted)
+                        .lineLimit(1)
+                } else if !tracker.frontmostAppName.isEmpty {
+                    Text(tracker.frontmostAppName)
+                        .font(.system(size: 10))
+                        .foregroundStyle(FiltrTheme.muted)
+                        .lineLimit(1)
+                }
+                Text("v\(store.appVersionString)")
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(FiltrTheme.muted.opacity(0.8))
             }
         }
         .padding(.horizontal, 16)
@@ -46,7 +67,7 @@ struct MenuBarPopover: View {
     }
 
     private var usageList: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             ForEach(store.categories) { config in
                 CategoryUsageRow(store: store, config: config)
             }
@@ -56,17 +77,24 @@ struct MenuBarPopover: View {
     }
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: 14) {
             Button("Settings…") {
                 openSettings()
             }
             .buttonStyle(.plain)
             .foregroundStyle(FiltrTheme.accent)
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: 13, weight: .semibold))
+
+            Button("Check for Updates") {
+                updates.checkForUpdates()
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(FiltrTheme.muted)
+            .font(.system(size: 12, weight: .medium))
 
             Spacer()
 
-            Button("Quit Filtr") {
+            Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
             .buttonStyle(.plain)
@@ -83,7 +111,7 @@ struct CategoryUsageRow: View {
     let config: CategoryConfig
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 7) {
             HStack {
                 Text(config.displayName)
                     .font(.system(size: 13, weight: .semibold))

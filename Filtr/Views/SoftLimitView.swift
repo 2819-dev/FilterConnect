@@ -6,12 +6,12 @@ struct SoftLimitView: View {
     var onClose: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Filtr")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(FiltrTheme.accent)
-                    .tracking(0.6)
+                    .tracking(0.8)
 
                 Text("You’ve reached your limit for today")
                     .font(.system(size: 18, weight: .semibold, design: .rounded))
@@ -19,7 +19,7 @@ struct SoftLimitView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 Text(category.displayName)
-                    .font(.system(size: 13))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(FiltrTheme.muted)
             }
 
@@ -43,13 +43,19 @@ struct SoftLimitView: View {
                 onClose()
             }
             .buttonStyle(.plain)
-            .font(.system(size: 12))
+            .font(.system(size: 12, weight: .medium))
             .foregroundStyle(FiltrTheme.muted)
             .frame(maxWidth: .infinity, alignment: .center)
         }
-        .padding(22)
+        .padding(24)
         .frame(width: 360)
-        .background(FiltrTheme.wash)
+        .background(
+            LinearGradient(
+                colors: [FiltrTheme.wash, Color(red: 0.94, green: 0.93, blue: 0.91)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 
     private func extendButton(_ title: String, action: @escaping () -> Void) -> some View {
@@ -59,7 +65,7 @@ struct SoftLimitView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
                         .fill(FiltrTheme.ink)
                 )
                 .foregroundStyle(FiltrTheme.wash)
