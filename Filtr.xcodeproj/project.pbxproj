@@ -1,0 +1,351 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* FiltrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* FiltrApp.swift */; };
+		A10000000000000000000002 /* CategoryID.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* CategoryID.swift */; };
+		A10000000000000000000003 /* AppMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* AppMapping.swift */; };
+		A10000000000000000000004 /* CategoryConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* CategoryConfig.swift */; };
+		A10000000000000000000005 /* DayUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* DayUsage.swift */; };
+		A10000000000000000000006 /* FiltrStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* FiltrStore.swift */; };
+		A10000000000000000000007 /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* PersistenceService.swift */; };
+		A10000000000000000000008 /* BrowserURLResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* BrowserURLResolver.swift */; };
+		A10000000000000000000009 /* UsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* UsageTracker.swift */; };
+		A1000000000000000000000A /* SoftLimitPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* SoftLimitPresenter.swift */; };
+		A1000000000000000000000B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* Theme.swift */; };
+		A1000000000000000000000C /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* MenuBarPopover.swift */; };
+		A1000000000000000000000D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* SettingsView.swift */; };
+		A1000000000000000000000E /* SoftLimitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* SoftLimitView.swift */; };
+		A1000000000000000000000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* Assets.xcassets */; };
+
+		A10000000000000000000010 /* SetupFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* SetupFlowView.swift */; };
+		A10000000000000000000011 /* SetupWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* SetupWindowController.swift */; };
+		A10000000000000000000012 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* UpdateController.swift */; };
+
+		A10000000000000000000014 /* InstalledAppsCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* InstalledAppsCatalog.swift */; };
+		A10000000000000000000015 /* AppPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* AppPickerSheet.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* FiltrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltrApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* CategoryID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryID.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* AppMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMapping.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* CategoryConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryConfig.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* DayUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayUsage.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* FiltrStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltrStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* BrowserURLResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserURLResolver.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* UsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTracker.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* SoftLimitPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftLimitPresenter.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* MenuBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopover.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* SoftLimitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftLimitView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000011 /* Filtr.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Filtr.entitlements; sourceTree = "<group>"; };
+		A20000000000000000000012 /* Filtr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Filtr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+
+		A20000000000000000000013 /* SetupFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupFlowView.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* SetupWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupWindowController.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* InstalledAppsCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAppsCatalog.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* AppPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPickerSheet.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* Filtr */,
+				A40000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* Filtr */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* FiltrApp.swift */,
+				A20000000000000000000011 /* Filtr.entitlements */,
+				A40000000000000000000004 /* Models */,
+				A40000000000000000000005 /* Services */,
+				A40000000000000000000006 /* Views */,
+				A40000000000000000000007 /* Resources */,
+			);
+			path = Filtr;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000012 /* Filtr.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000002 /* CategoryID.swift */,
+				A20000000000000000000003 /* AppMapping.swift */,
+				A20000000000000000000004 /* CategoryConfig.swift */,
+				A20000000000000000000005 /* DayUsage.swift */,
+				A20000000000000000000006 /* FiltrStore.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000007 /* PersistenceService.swift */,
+				A20000000000000000000008 /* BrowserURLResolver.swift */,
+				A20000000000000000000009 /* UsageTracker.swift */,
+				A2000000000000000000000A /* SoftLimitPresenter.swift */,
+				A20000000000000000000014 /* SetupWindowController.swift */,
+				A20000000000000000000015 /* UpdateController.swift */,
+				A20000000000000000000016 /* InstalledAppsCatalog.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000B /* Theme.swift */,
+				A2000000000000000000000C /* MenuBarPopover.swift */,
+				A2000000000000000000000D /* SettingsView.swift */,
+				A2000000000000000000000E /* SoftLimitView.swift */,
+				A20000000000000000000013 /* SetupFlowView.swift */,
+				A20000000000000000000017 /* AppPickerSheet.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000F /* Assets.xcassets */,
+				A20000000000000000000010 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* Filtr */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000003 /* Build configuration list for PBXNativeTarget "Filtr" */;
+			buildPhases = (
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+				A60000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Filtr;
+			productName = Filtr;
+			productReference = A20000000000000000000012 /* Filtr.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A80000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A70000000000000000000001 /* Build configuration list for PBXProject "Filtr" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			productRefGroup = A40000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* Filtr */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A60000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000000F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* FiltrApp.swift in Sources */,
+				A10000000000000000000002 /* CategoryID.swift in Sources */,
+				A10000000000000000000003 /* AppMapping.swift in Sources */,
+				A10000000000000000000004 /* CategoryConfig.swift in Sources */,
+				A10000000000000000000005 /* DayUsage.swift in Sources */,
+				A10000000000000000000006 /* FiltrStore.swift in Sources */,
+				A10000000000000000000007 /* PersistenceService.swift in Sources */,
+				A10000000000000000000008 /* BrowserURLResolver.swift in Sources */,
+				A10000000000000000000009 /* UsageTracker.swift in Sources */,
+				A1000000000000000000000A /* SoftLimitPresenter.swift in Sources */,
+				A1000000000000000000000B /* Theme.swift in Sources */,
+				A1000000000000000000000C /* MenuBarPopover.swift in Sources */,
+				A1000000000000000000000D /* SettingsView.swift in Sources */,
+				A1000000000000000000000E /* SoftLimitView.swift in Sources */,
+				A10000000000000000000010 /* SetupFlowView.swift in Sources */,
+				A10000000000000000000011 /* SetupWindowController.swift in Sources */,
+				A10000000000000000000012 /* UpdateController.swift in Sources */,
+				A10000000000000000000014 /* InstalledAppsCatalog.swift in Sources */,
+				A10000000000000000000015 /* AppPickerSheet.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A90000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A90000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		A90000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Filtr/Filtr.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 31;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Filtr/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.3.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.filtr.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A90000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Filtr/Filtr.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 31;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Filtr/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.3.1;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.filtr.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A70000000000000000000001 /* Build configuration list for PBXProject "Filtr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000000000000000000001 /* Debug */,
+				A90000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000003 /* Build configuration list for PBXNativeTarget "Filtr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000000000000000000003 /* Debug */,
+				A90000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A80000000000000000000001 /* Project object */;
+}

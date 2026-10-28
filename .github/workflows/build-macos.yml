@@ -1,0 +1,113 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FILTR_TAG: v0.3.1
+  FILTR_VERSION: 0.3.1
+  FILTR_BUILD: "31"
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcodebuild -list -project Filtr.xcodeproj
+
+      - name: Build Release (unsigned / ad-hoc)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project Filtr.xcodeproj \
+            -scheme Filtr \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ENABLE_HARDENED_RUNTIME=NO \
+            DEVELOPMENT_TEAM= \
+            MARKETING_VERSION="${FILTR_VERSION}" \
+            CURRENT_PROJECT_VERSION="${FILTR_BUILD}" \
+            build
+
+      - name: Package zip + fancy DMG
+        run: |
+          set -euo pipefail
+          APP="$(find DerivedData/Build/Products/Release -name 'Filtr.app' -type d -maxdepth 2 | head -n 1)"
+          if [[ -z "${APP}" || ! -d "${APP}" ]]; then
+            echo "Filtr.app not found under DerivedData/Build/Products/Release"
+            find DerivedData -name '*.app' -type d || true
+            exit 1
+          fi
+          echo "Found app at: ${APP}"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "${APP}" dist/Filtr.app.zip
+          chmod +x scripts/make-fancy-dmg.sh
+          scripts/make-fancy-dmg.sh "${APP}" dist/Filtr.dmg
+          ls -lh dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Filtr-macOS
+          path: |
+            dist/Filtr.app.zip
+            dist/Filtr.dmg
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${FILTR_TAG}"
+          TITLE="Filtr ${FILTR_VERSION} — new Filtr logo"
+          NOTES="$(cat <<'EOF'
+          Refined Filtr brand logo for Dock / Finder and the menu bar.
+
+          **Install**
+          1. Open `Filtr.dmg` → **Drag Filtr to Applications**
+          2. First launch: **Right-click → Open** (Gatekeeper; unsigned)
+
+          **Customization**
+          - Rename built-in categories or add your own
+          - Choose installed apps from a searchable picker
+          - Add website hosts and the frontmost app
+          - Setup flow includes limits + apps & sites steps
+
+          Soft limits + in-app updates from GitHub Releases.
+          EOF
+          )"
+
+          ASSETS=(dist/Filtr.app.zip dist/Filtr.dmg)
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${ASSETS[@]}" --clobber
+            gh release edit "${TAG}" --title "${TITLE}" --notes "${NOTES}"
+          else
+            gh release create "${TAG}" "${ASSETS[@]}" \
+              --title "${TITLE}" \
+              --notes "${NOTES}"
+          fi
+
+          echo "Release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
+          echo "Zip: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.app.zip"
+          echo "DMG: https://github.com/${{ github.repository }}/releases/download/${TAG}/Filtr.dmg"
